@@ -1,8 +1,4 @@
-libgroth16/target/aarch64-apple-darwin/release/liblibgroth16.a filter=lfs diff=lfs merge=lfs -text
 libgroth16/lib/darwin/arm64/libgroth16.a filter=lfs diff=lfs merge=lfs -text
-libgroth16/target/aarch64-apple-darwin/release/deps/libgroth16.a filter=lfs diff=lfs merge=lfs -text
-libgroth16/target/aarch64-apple-darwin/release/deps/liblibgroth16.a filter=lfs diff=lfs merge=lfs -text
-libgroth16/target/aarch64-apple-darwin/release/libgroth16.a filter=lfs diff=lfs merge=lfs -text
 data-files/guardianhash_0001.zkey filter=lfs diff=lfs merge=lfs -text
 data-files/guardianhash.wasm filter=lfs diff=lfs merge=lfs -text
 data-files/guardianhash.r1cs filter=lfs diff=lfs merge=lfs -text

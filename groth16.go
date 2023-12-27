@@ -36,8 +36,6 @@ type ProvingContext struct {
 }
 
 func LoadContext(wasmPath string, r1csPath string, zkeyPath string) *ProvingContext {
-	println("loading context")
-	defer println("loaded context")
 	buffer := C.malloc(C.size_t(BufferSize))
 	wasmPathC := C.CString(wasmPath)
 	r1csPathC := C.CString(r1csPath)
@@ -48,8 +46,6 @@ func LoadContext(wasmPath string, r1csPath string, zkeyPath string) *ProvingCont
 }
 
 func (c *ProvingContext) Prove(input string) string {
-	println("proving")
-	defer println("proved")
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 	res := C.prove_bn254(c.ctx, inputC, (*C.char)(c.buffer), BufferSize)
