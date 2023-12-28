@@ -21,6 +21,14 @@ pub struct ProvingContext<P: Pairing> {
     pub(crate) pk: ProvingKey<P>,
 }
 
+impl<P: Pairing> ProvingContext<P> {
+    pub(crate) fn verifying_key_in_hex(&self) -> String {
+        let mut vk = Vec::new();
+        self.pk.vk.serialize_compressed(&mut vk).expect("failed to serialize the verifying key");
+        hex::encode(vk)
+    }
+}
+
 #[derive(Debug)]
 struct InvalidPathError;
 
@@ -102,8 +110,8 @@ pub(crate) fn load_context(
 }
 
 pub(crate) fn ret_or_err<T, E>(res: Result<T, E>) -> *mut T
-where
-    E: Debug + Display,
+    where
+        E: Debug + Display,
 {
     match res {
         Ok(res) => Box::into_raw(Box::new(res)),
@@ -178,6 +186,7 @@ pub(crate) fn write_to_buffer(
         }
         len_c_int
     } else {
+        println!("required length is {}", len_c_int);
         -1000
     }
 }
@@ -250,5 +259,17 @@ mod utils_test {
         let (pub_inputs, proof) = res.unwrap();
         let output = serialize(pub_inputs, proof);
         println!("{}", output.unwrap());
+    }
+
+    #[test]
+    fn test_export_vk() {
+        let ctx = load_context(
+            "../data-files/guardianhash.wasm",
+            "../data-files/guardianhash.r1cs",
+            "../data-files/guardianhash_0001.zkey",
+        );
+        assert!(ctx.is_ok());
+        let vk = ctx.unwrap().verifying_key_in_hex();
+        println!("{}", vk);
     }
 }

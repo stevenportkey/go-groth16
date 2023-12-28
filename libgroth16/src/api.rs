@@ -1,4 +1,3 @@
-
 use crate::utils::{
     do_prove, do_verify, load_context, ret_or_err, serialize, write_to_buffer, ProvingContext,
 };
@@ -43,6 +42,35 @@ pub extern "C" fn load_context_bn254(
 }
 
 #[no_mangle]
+pub extern "C" fn verifying_key_size_bn254(
+    ctx: Option<&mut ProvingContext<Bn254>>
+) -> cty::c_int {
+    match ctx {
+        Some(ctx) => {
+            let vk = ctx.verifying_key_in_hex();
+            vk.len() as i32
+        }
+        _ => -1,
+    }
+}
+
+
+#[no_mangle]
+pub extern "C" fn export_verifying_key_bn254(
+    ctx: Option<&mut ProvingContext<Bn254>>,
+    buf: *mut cty::c_char,
+    max_len: cty::c_int,
+) -> cty::c_int {
+    match ctx {
+        Some(ctx) => {
+            let vk = ctx.verifying_key_in_hex();
+            write_to_buffer(&vk, buf, max_len)
+        }
+        _ => -1,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn prove_bn254(
     ctx: Option<&mut ProvingContext<Bn254>>,
     input: *const cty::c_char,
@@ -56,7 +84,7 @@ pub extern "C" fn prove_bn254(
                 Ok(output) => {
                     write_to_buffer(&output, buf, max_len);
                     0
-                },
+                }
                 Err(_) => -1,
             },
             Err(_) => -1,

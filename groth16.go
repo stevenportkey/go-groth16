@@ -7,7 +7,9 @@ package go_groth16
 #include <groth16.h>
 */
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 const BufferSize = 4096
 
@@ -53,6 +55,17 @@ func (c *ProvingContext) Prove(input string) string {
 		println("failed")
 	}
 	return C.GoString((*C.char)(c.buffer))
+}
+
+func (c *ProvingContext) VerifyingKey() string {
+	size := C.verifying_key_size_bn254(c.ctx)
+	tempBuffer := C.malloc(C.size_t(size + 1))
+	defer C.free(tempBuffer)
+	res := C.export_verifying_key_bn254(c.ctx, (*C.char)(tempBuffer), size+1)
+	if res < 0 {
+		println("failed")
+	}
+	return C.GoString((*C.char)(tempBuffer))
 }
 
 func (c *ProvingContext) Free() {
