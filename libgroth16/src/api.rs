@@ -8,19 +8,22 @@ use std::ffi::CStr;
 #[no_mangle]
 pub extern "C" fn groth16_verify_bn254(
     vk: *const cty::c_char,
-    vk_len: cty::c_int,
-    inputs: *const cty::c_char,
-    input_len: cty::c_int,
-    proof: *const cty::c_char,
-    proof_len: cty::c_int,
+    proving_output: *const cty::c_char,
 ) -> cty::c_int {
-    match do_verify::<Bn254>(vk, vk_len, inputs, input_len, proof, proof_len) {
-        Ok(true) => 1,
-        Ok(false) => 0,
-        Err(err) => {
-            println!("{}", err);
-            -2
+    let vk = unsafe { CStr::from_ptr(vk).to_str() };
+    let proving_output = unsafe { CStr::from_ptr(proving_output).to_str() };
+    match (vk, proving_output) {
+        (Ok(vk), Ok(proving_output)) => {
+            match do_verify::<Bn254>(vk, proving_output) {
+                Ok(true) => 1,
+                Ok(false) => 0,
+                Err(err) => {
+                    println!("{}", err);
+                    -2
+                }
+            }
         }
+        _ => { -1 }
     }
 }
 

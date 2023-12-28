@@ -1074,6 +1074,7 @@ dependencies = [
  "ark-bn254",
  "ark-circom",
  "ark-ec",
+ "ark-ff",
  "ark-groth16",
  "ark-relations",
  "ark-serialize",

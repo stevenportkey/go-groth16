@@ -30,6 +30,7 @@ serde = "1.0.193"
 eyre = "0.6.11"
 num-traits = "0.2.15"
 itertools = "0.10.5"
+ark-ff = "0.4.1"
 
 [dev-dependencies]
 base64 = "0.21.5"

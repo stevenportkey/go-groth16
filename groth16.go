@@ -13,22 +13,11 @@ import (
 
 const BufferSize = 4096
 
-func VerifyBn254(vk []byte, inputs [][]byte, proof []byte) int {
-	var input []byte
-	for _, slice := range inputs {
-		input = append(input, slice...)
-	}
-	vkC := (*C.char)(unsafe.Pointer(&vk[0]))
-	vkL := C.int(len(vk))
-	inputC := (*C.char)(unsafe.Pointer(&input[0]))
-	inputL := C.int(len(input))
-	proofC := (*C.char)(unsafe.Pointer(&proof[0]))
-	proofL := C.int(len(proof))
-
-	//val := int(C.empty(vkC, vkL, inputC, inputL, proofC, proofL))
-
-	val := int(C.groth16_verify_bn254(vkC, vkL, inputC, inputL, proofC, proofL))
-	return val
+func VerifyBn254(vk string, provingOutput string) bool {
+	vkC := C.CString(vk)
+	provingOutputC := C.CString(provingOutput)
+	res := C.groth16_verify_bn254(vkC, provingOutputC)
+	return res == 1
 }
 
 type ProvingContext struct {
