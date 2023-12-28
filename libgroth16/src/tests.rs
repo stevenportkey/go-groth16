@@ -6,10 +6,10 @@ mod test {
     use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystem};
     use ark_serialize::CanonicalSerialize;
     use ark_snark::SNARK;
-    use base64::Engine as _;
+    
     use num_bigint::BigInt;
     use rand::thread_rng;
-    use std::fmt::Debug;
+    
     use std::fs::File;
 
     fn dec(hex_string: &str) -> BigInt {

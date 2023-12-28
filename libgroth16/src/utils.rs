@@ -12,11 +12,11 @@ use num_bigint::BigInt;
 use num_traits::Num;
 use rand::thread_rng;
 use std::collections::HashMap;
-use std::fmt::{Debug, Display, Error, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::fs::File;
-use std::hash::Hash;
 
-pub(crate) struct ProvingContext<P: Pairing> {
+
+pub struct ProvingContext<P: Pairing> {
     pub(crate) cfg: CircomConfig<P>,
     pub(crate) pk: ProvingKey<P>,
 }
@@ -107,7 +107,7 @@ where
 {
     match res {
         Ok(res) => Box::into_raw(Box::new(res)),
-        Err(e) => std::ptr::null_mut(),
+        Err(_e) => std::ptr::null_mut(),
     }
 }
 

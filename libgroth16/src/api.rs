@@ -1,9 +1,9 @@
-use crate::dto::ProvingOutput;
+
 use crate::utils::{
     do_prove, do_verify, load_context, ret_or_err, serialize, write_to_buffer, ProvingContext,
 };
 use ark_bn254::Bn254;
-use ark_serialize::CanonicalSerialize;
+
 use std::ffi::CStr;
 
 #[no_mangle]
@@ -68,5 +68,5 @@ pub extern "C" fn prove_bn254(
 #[no_mangle]
 pub unsafe extern "C" fn free_context_bn254(state: *mut ProvingContext<Bn254>) {
     assert!(!state.is_null());
-    Box::from_raw(state); // Rust auto-drops it
+    let _ = Box::from_raw(state); // Rust auto-drops it
 }
