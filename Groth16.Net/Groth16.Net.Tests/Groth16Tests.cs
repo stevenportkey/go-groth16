@@ -1,6 +1,25 @@
 using System;
+using Newtonsoft.Json;
 
 namespace Groth16.Net.Tests;
+
+public class ProvingOutput
+{
+    public ProvingOutput(IList<string> publicInputs, string proof)
+    {
+        PublicInputs = publicInputs;
+        Proof = proof;
+    }
+
+    [JsonProperty("public_inputs")] public IList<string> PublicInputs { get; set; }
+
+    [JsonProperty("proof")] public string Proof { get; set; }
+
+    public static ProvingOutput FromJsonString(string jsonString)
+    {
+        return JsonConvert.DeserializeObject<ProvingOutput>(jsonString);
+    }
+}
 
 public class Groth16Tests
 {
@@ -125,8 +144,16 @@ public class Groth16Tests
         var zkeyPath = "../../../../../data-files/guardianhash_0001.zkey";
         using var prover = Prover.Create(wasmPath, r1csPath, zkeyPath);
 
-        var provingOutput = prover.ProveBn254(ProvingInput);
-        var verified = Verifier.VerifyBn254(prover.ExportVerifyingKeyBn254(), provingOutput);
+        var provingOutputString = prover.ProveBn254(ProvingInput);
+        var provingOutput = ParseProvingOutput(provingOutputString);
+        var verified = Verifier.VerifyBn254(prover.ExportVerifyingKeyBn254(), provingOutput.PublicInputs,
+            provingOutput.Proof);
         Assert.True(verified);
+    }
+
+    private static ProvingOutput ParseProvingOutput(string provingOutput)
+    {
+        var provingOutputObj = JsonConvert.DeserializeObject<ProvingOutput>(provingOutput);
+        return provingOutputObj;
     }
 }

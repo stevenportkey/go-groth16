@@ -10,13 +10,13 @@ namespace Groth16.Net
     {
         public static string ToJsonString(this InputType input)
         {
-            var entries = input.Select((kv, _) => $"\"{kv.Key}\":{JoinStrings(kv.Value)}");
+            var entries = input.Select((kv, _) => $"\"{kv.Key}\":{kv.Value.ToJsonString()}");
             return "{" + string.Join(",", entries) + "}";
+        }
 
-            string JoinStrings(IList<string> values)
-            {
-                return "[" + string.Join(",", values.Select(x => $"\"{x}\"")) + "]";
-            }
+        public static string ToJsonString(this IList<string> values)
+        {
+            return "[" + string.Join(",", values.Select(x => $"\"{x}\"")) + "]";
         }
     }
 }
