@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Newtonsoft.Json;
 
 namespace Groth16.Net.Tests;
@@ -149,6 +150,62 @@ public class Groth16Tests
         var verified = Verifier.VerifyBn254(prover.ExportVerifyingKeyBn254(), provingOutput.PublicInputs,
             provingOutput.Proof);
         Assert.True(verified);
+    }
+
+    [Theory]
+    [InlineData("dc9b", 0, "dc9b")]
+    [InlineData("dc9b", 1, "6e4d")]
+    [InlineData("dc9b", 2, "3726")]
+    [InlineData("dc9b", 3, "1b93")]
+    [InlineData("dc9b", 4, "0dc9")]
+    [InlineData("dc9b", 5, "06e4")]
+    [InlineData("dc9b", 6, "0372")]
+    [InlineData("dc9b", 7, "01b9")]
+    [InlineData("dc9b", 8, "00dc")]
+    [InlineData("dc9b", 9, "006e")]
+    [InlineData("dc9b", 10, "0037")]
+    [InlineData("dc9b", 11, "001b")]
+    [InlineData("dc9b", 12, "000d")]
+    [InlineData("dc9b", 13, "0006")]
+    [InlineData("dc9b", 14, "0003")]
+    [InlineData("dc9b", 15, "0001")]
+    [InlineData("dc9b", 16, "0000")]
+    [InlineData("dc9b", 17, "0000")]
+    [InlineData("dc9b", 18, "0000")]
+    public void Test_Shift(string hex, int shift, string result)
+    {
+        var bytes = Net.Helpers.HexStringToByteArray(hex);
+        Net.Helpers.ShiftArrayRight(bytes, shift);
+        var hexnew = BitConverter.ToString(bytes).Replace("-", "").ToLower();
+        Assert.Equal(result, hexnew);
+    }
+
+    [Fact]
+    public void Test_PubKey_Prep()
+    {
+        var hex =
+            "bb5494d4b7d52cf1c2a333311f6328e2580e11e3f3366d2d46078b7b357a7df02dd20ba75532f0ee89cb467aead3f2335bbc9647b424ae604bee34ca127e6efaa2a16f029f06cb48b3e6cc636664a75f209d3c4a2f1a12dad15ccc690f2cf822cec92e7a63208519e259aa0b7327a191ddeaa86125bd6fd50cbe406964e0d272d5923468f73fb8d11433b95684f00900166c59ce8c37c7e54960a763ca4909d224fdc024b40d14d7bb6ebd576eb855fff78efade75988a46483094bf71340c315c5834c7f5c5c34d3951655122476070a5938e904fd9d3f0559e16582fbd68655df86ca7d68d022de95fe2b1231a85db00012002a786531adc2256e35df6dc9b";
+        var chunks = Net.Helpers.BigIntToChunkedBytes(hex, 121, 17);
+        Assert.Equal(new List<string>()
+        {
+            "5841544268561861499519250994748571",
+            "282086110796185156675799806248152448",
+            "2181169572700087019903500222780233598",
+            "1322589976114836556068768894837633649",
+            "1794113848426178665483863008905364300",
+            "543380795324313410170505147425740531",
+            "1493214249295981343844955353860051664",
+            "2171199579242924905862250512208697455",
+            "1395394319132308840130123038054629304",
+            "1562009664380263536909338779810969578",
+            "1594567849407226969396248621216777848",
+            "2058356264851095114515728757906168363",
+            "836769104848661443299826291369000556",
+            "1779001964758400339025173335511101862",
+            "2544058187525854999124570613534759403",
+            "424565350689075956046563544271353450",
+            "3799511822475913352444008446631779"
+        }, chunks);
     }
 
     private static ProvingOutput ParseProvingOutput(string provingOutput)
