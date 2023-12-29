@@ -2,3 +2,8 @@ libgroth16/lib/darwin/arm64/libgroth16.a filter=lfs diff=lfs merge=lfs -text
 data-files/guardianhash_0001.zkey filter=lfs diff=lfs merge=lfs -text
 data-files/guardianhash.wasm filter=lfs diff=lfs merge=lfs -text
 data-files/guardianhash.r1cs filter=lfs diff=lfs merge=lfs -text
+libgroth16/lib/linux/amd64/libark_circom-189a008536a7f3da.so filter=lfs diff=lfs merge=lfs -text
+libgroth16/lib/linux/amd64/libgroth16.so filter=lfs diff=lfs merge=lfs -text
+libgroth16/lib/linux/amd64/libgroth16.a filter=lfs diff=lfs merge=lfs -text
+libgroth16/lib/darwin/arm64/libark_circom-a6c0b04e23694007.dylib filter=lfs diff=lfs merge=lfs -text
+libgroth16/lib/darwin/arm64/libgroth16.dylib filter=lfs diff=lfs merge=lfs -text

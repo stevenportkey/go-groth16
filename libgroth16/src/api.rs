@@ -85,8 +85,7 @@ pub extern "C" fn prove_bn254(
         (Some(ctx), Ok(input)) => match do_prove(ctx, input) {
             Ok((pub_inputs, proof)) => match serialize(pub_inputs, proof) {
                 Ok(output) => {
-                    write_to_buffer(&output, buf, max_len);
-                    0
+                    write_to_buffer(&output, buf, max_len)
                 }
                 Err(_) => -1,
             },

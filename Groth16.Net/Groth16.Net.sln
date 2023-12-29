@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Groth16.Net", "Groth16.Net\Groth16.Net.csproj", "{EDEE2F59-955E-4E0E-9068-3E12C598008C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Groth16.Net.Tests", "Groth16.Net.Tests\Groth16.Net.Tests.csproj", "{0496B85B-3C10-4BF6-9AAD-DD98A391229E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EDEE2F59-955E-4E0E-9068-3E12C598008C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDEE2F59-955E-4E0E-9068-3E12C598008C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDEE2F59-955E-4E0E-9068-3E12C598008C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDEE2F59-955E-4E0E-9068-3E12C598008C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0496B85B-3C10-4BF6-9AAD-DD98A391229E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0496B85B-3C10-4BF6-9AAD-DD98A391229E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0496B85B-3C10-4BF6-9AAD-DD98A391229E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0496B85B-3C10-4BF6-9AAD-DD98A391229E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
