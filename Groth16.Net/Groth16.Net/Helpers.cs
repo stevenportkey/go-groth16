@@ -112,7 +112,7 @@ namespace Groth16.Net
             return byteArray;
         }
 
-        public static IList<string> BigIntToChunkedBytes(this string hexValue, int bytesPerChunk, int numOfChunks)
+        public static IList<string> HexToChunkedBytes(this string hexValue, int bytesPerChunk, int numOfChunks)
         {
             var bytes = HexStringToByteArray(hexValue);
             var chunks = new List<string>();
