@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -11,18 +10,18 @@ namespace Groth16.Net
 
     public static class Helpers
     {
-        public static string ToJsonString(this InputType input)
+        internal static string ToJsonString(this InputType input)
         {
             var entries = input.Select((kv, _) => $"\"{kv.Key}\":{kv.Value.ToJsonString()}");
             return "{" + string.Join(",", entries) + "}";
         }
 
-        public static string ToJsonString(this IList<string> values)
+        internal static string ToJsonString(this IList<string> values)
         {
             return "[" + string.Join(",", values.Select(x => $"\"{x}\"")) + "]";
         }
 
-        public static void ShiftArrayRight(byte[] array, int shiftBits)
+        internal static void ShiftArrayRight(byte[] array, int shiftBits)
         {
             var shiftBytes = shiftBits / 8;
             var shiftBitsMod8 = shiftBits % 8;
@@ -55,7 +54,7 @@ namespace Groth16.Net
             }
         }
 
-        public static void ShiftBytesRight(byte[] array, int shiftBytes)
+        internal static void ShiftBytesRight(byte[] array, int shiftBytes)
         {
             var length = array.Length;
             var remainingBytes = length - shiftBytes;
@@ -75,7 +74,7 @@ namespace Groth16.Net
             }
         }
 
-        public static byte[] Mask(byte[] array, int maskBits)
+        internal static byte[] Mask(byte[] array, int maskBits)
         {
             var maskBytes = (maskBits - 1) / 8 + 1; // ceil(maskBits / 8)
             var maskBitsOfPartialByte = maskBits % 8;
@@ -100,7 +99,7 @@ namespace Groth16.Net
             return masked;
         }
 
-        public static byte[] HexStringToByteArray(string hex)
+        internal static byte[] HexStringToByteArray(string hex)
         {
             var length = hex.Length;
             var byteArray = new byte[length / 2];
