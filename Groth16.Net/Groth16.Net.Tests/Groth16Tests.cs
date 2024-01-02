@@ -252,7 +252,7 @@ public class Groth16Tests
     [Fact]
     public void Test_PubKey_Prep()
     {
-        var chunks = Net.Helpers.HexToChunkedBytes(PublicKeyHex, 121, 17);
+        var chunks = Net.Helpers.HexToChunkedBytes(PublicKeyHex, 121, 17).Select(s => s.HexToBigInt());
         Assert.Equal(new List<string>
         {
             "5841544268561861499519250994748571",
@@ -281,7 +281,7 @@ public class Groth16Tests
         var identifierHash =
             Net.Helpers.HexStringToByteArray("7f0bdbbd5bc4c68c21afe63067d39bbc863432cec2c56b9d351cad89346a8b47");
         var salt = Net.Helpers.HexStringToByteArray("a677999396dc49a28ad6c9c242719bb3");
-        var pk = PublicKeyHex.HexToChunkedBytes(121, 17);
+        var pk = PublicKeyHex.HexToChunkedBytes(121, 17).Select(s => s.HexToBigInt());
         var idHash = identifierHash.Select(b => b.ToString()).ToList();
         var saltInput = salt.Select(b => b.ToString()).ToList();
         var publicInputs = idHash.Concat(pk).Concat(saltInput).ToList();

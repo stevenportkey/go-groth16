@@ -120,11 +120,16 @@ namespace Groth16.Net
             {
                 var chunk = Mask(bytes, bytesPerChunk);
                 var chunkString = BitConverter.ToString(chunk).Replace("-", "");
-                chunks.Add(BigInteger.Parse(chunkString, NumberStyles.HexNumber).ToString());
+                chunks.Add(chunkString);
                 ShiftArrayRight(bytes, bytesPerChunk);
             }
 
             return chunks;
+        }
+
+        public static string HexToBigInt(this string hexString)
+        {
+            return BigInteger.Parse(hexString, NumberStyles.HexNumber).ToString();
         }
     }
 }
