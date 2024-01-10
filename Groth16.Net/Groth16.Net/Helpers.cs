@@ -95,7 +95,8 @@ namespace Groth16.Net
                 mask |= (byte)(1 << i);
             }
 
-            masked[0] = (byte)(masked[0] & mask);
+            if (maskBitsOfPartialByte > 0)
+                masked[0] = (byte)(masked[0] & mask);
             return masked;
         }
 
