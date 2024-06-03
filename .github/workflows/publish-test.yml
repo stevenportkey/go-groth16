@@ -7,7 +7,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      WORKING_DIRECTORY: ${{github.workspace}}/Groth16.Net
+      WORKING_DIRECTORY: ${{github.workspace}}/Groth16.Net/Groth16.Net
     steps:
 
       - name: Checkout code
@@ -16,7 +16,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 6.0.x
 
       - name: Build
         working-directory: ${{env.WORKING_DIRECTORY}}
