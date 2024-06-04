@@ -1,0 +1,38 @@
+name: Publish to nugettest repository
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      WORKING_DIRECTORY: ${{github.workspace}}/Groth16.Net/Groth16.Net
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Build
+        working-directory: ${{env.WORKING_DIRECTORY}}
+        run: dotnet build
+
+      - name: Pack
+        working-directory: ${{env.WORKING_DIRECTORY}}
+        run: dotnet pack -c Release -o ${{github.workspace}}/out
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Groth16.Net
+          path: ${{github.workspace}}/out
+
+      - name: Publish to test nuget
+        run: dotnet nuget push ${{github.workspace}}/out/*.nupkg --api-key ${{secrets.NUGET_TEST_API_KEY}} --source https://apiint.nugettest.org/v3/index.json --skip-duplicate
