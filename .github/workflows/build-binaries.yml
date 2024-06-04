@@ -22,7 +22,7 @@ jobs:
             rust_target: aarch64-apple-darwin
           - os: windows-latest
             arch: amd64
-            rust_target: x86_64-pc-windows-gnu
+            rust_target: x86_64-pc-windows-msvc
 #          - os: ubuntu-latest  # Disabled as corosensei-0.1.4 doesn't support aarch64-pc-windows-msvc
 #            arch: arm64
 #            rust_target: aarch64-pc-windows-msvc
