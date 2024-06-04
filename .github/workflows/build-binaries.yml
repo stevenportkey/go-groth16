@@ -53,16 +53,18 @@ jobs:
       - name: Zip artifact
         run: |
           cd libgroth16/target/${{ matrix.rust_target }}/release
-          zip -r libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip libgroth16.*
+          zip -r libgroth16-${{ OS }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip libgroth16.*
         env:
           GITHUB_REF: ${{ github.ref }}
+          OS: ${{ replace(matrix.os, '-latest', '') }}
 
       - name: Upload zips to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
-          asset_name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
+          file: libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
+          asset_name: libgroth16-${{ OS }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
           tag: ${{ github.ref }}
         env:
           GITHUB_REF: ${{ github.ref }}
+          OS: ${{ replace(matrix.os, '-latest', '') }}
