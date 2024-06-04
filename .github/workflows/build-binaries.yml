@@ -64,3 +64,5 @@ jobs:
           file: ./libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
           asset_name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
           tag: ${{ github.ref }}
+        env:
+          GITHUB_REF: ${{ github.ref }}
