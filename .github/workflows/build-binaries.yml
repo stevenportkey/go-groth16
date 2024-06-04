@@ -53,20 +53,40 @@ jobs:
             echo "OS_NAME=linux" >> $GITHUB_ENV
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             echo "OS_NAME=osx" >> $GITHUB_ENV
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            echo "OS_NAME=win" >> $GITHUB_ENV
           fi
           echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
         env:
           GITHUB_REF: ${{ github.ref }}
+        if: matrix.os != 'windows-latest'
+
+      - name: Prepare OS_NAME and VERSION fow windows
+        run: |
+          echo "OS_NAME=win" >> $GITHUB_ENV
+          echo "VERSION=$($env:GITHUB_REF -replace '.*/', '')" >> $env:GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
 
       - name: Create directories
         run: mkdir -p libgroth16/target/${{ matrix.rust_target }}/release
+
+      - name: Create directories for windows
+        run: New-Item -Path libgroth16/target/${{ matrix.rust_target }}/release -ItemType Directory -Force
+        shell: pwsh
 
       - name: Zip artifact
         run: |
           cd libgroth16/target/${{ matrix.rust_target }}/release
           zip -r libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip libgroth16.*
+        if: matrix.os != 'windows-latest'
+
+      - name: Zip artifact on Windows
+        run: |
+          cd libgroth16/target/${{ matrix.rust_target }}/release
+          Compress-Archive -Path libgroth16.* -DestinationPath libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
 
       - name: Upload zips to release
         uses: svenstaro/upload-release-action@v2
