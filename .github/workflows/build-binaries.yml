@@ -70,9 +70,11 @@ jobs:
 
       - name: Create directories
         run: mkdir -p libgroth16/target/${{ matrix.rust_target }}/release
+        if: matrix.os != 'windows-latest'
 
       - name: Create directories for windows
         run: New-Item -Path libgroth16/target/${{ matrix.rust_target }}/release -ItemType Directory -Force
+        if: matrix.os == 'windows-latest'
         shell: pwsh
 
       - name: Zip artifact
