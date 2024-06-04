@@ -7,8 +7,25 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        arch: [amd64, arm64]
+        include:
+          - os: ubuntu-latest
+            arch: amd64
+            rust_target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            arch: arm64
+            rust_target: aarch64-unknown-linux-gnu
+          - os: macos-latest
+            arch: amd64
+            rust_target: x86_64-apple-darwin
+          - os: macos-latest
+            arch: arm64
+            rust_target: aarch64-apple-darwin
+          - os: windows-latest
+            arch: amd64
+            rust_target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            arch: arm64
+            rust_target: aarch64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -20,16 +37,16 @@ jobs:
         with:
           toolchain: stable
           override: true
-          target: ${{ matrix.arch }}
+          target: ${{ matrix.rust_target }}
 
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target ${{ matrix.arch }}
+          args: --release --target ${{ matrix.rust_target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}
-          path: target/${{ matrix.arch }}/release/libgroth16.*
+          path: target/${{ matrix.rust_target }}/release/libgroth16.*
