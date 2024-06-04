@@ -25,7 +25,7 @@ jobs:
             rust_target: x86_64-pc-windows-gnu
           - os: ubuntu-latest
             arch: arm64
-            rust_target: aarch64-pc-windows-gnu
+            rust_target: aarch64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
