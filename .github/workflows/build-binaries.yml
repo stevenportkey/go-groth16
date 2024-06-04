@@ -90,11 +90,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
 
-      - name: List directory contents on Windows
-        run: Get-ChildItem -Path libgroth16/target/${{ matrix.rust_target }}/release -Force
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-
       - name: Upload zips to release
         uses: svenstaro/upload-release-action@v2
         with:
