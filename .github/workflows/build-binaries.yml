@@ -1,7 +1,9 @@
 name: Build Binaries
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -23,9 +25,6 @@ jobs:
           - os: windows-latest
             arch: amd64
             rust_target: x86_64-pc-windows-msvc
-#          - os: ubuntu-latest  # Disabled as corosensei-0.1.4 doesn't support aarch64-pc-windows-msvc
-#            arch: arm64
-#            rust_target: aarch64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -46,8 +45,29 @@ jobs:
           cd libgroth16
           cross build --release --target ${{ matrix.rust_target }}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
+      - name: Zip artifact
+        run: |
+          cd libgroth16/target/${{ matrix.rust_target }}/release
+          zip -r libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${{ github.ref }}.zip libgroth16.*
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}
-          path: libgroth16/target/${{ matrix.rust_target }}/release/libgroth16.*
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${{ github.ref }}.zip
+          asset_name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${{ github.ref }}.zip
+          asset_content_type: application/zip
