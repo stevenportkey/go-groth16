@@ -47,11 +47,14 @@ jobs:
           cd libgroth16
           cross build --release --target ${{ matrix.rust_target }}
 
-      - name: Prepare OS_NAME
+      - name: Prepare OS_NAME and VERSION
         run: |
           OS_NAME=${{ matrix.os }}
           OS_NAME=${OS_NAME%-latest}
           echo "OS_NAME=$OS_NAME" >> $GITHUB_ENV
+          echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref }}
 
       - name: Create directories
         run: mkdir -p libgroth16/target/${{ matrix.rust_target }}/release
@@ -59,9 +62,7 @@ jobs:
       - name: Zip artifact
         run: |
           cd libgroth16/target/${{ matrix.rust_target }}/release
-          zip -r libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip libgroth16.*
-        env:
-          GITHUB_REF: ${{ github.ref }}
+          zip -r libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip libgroth16.*
 
       - name: List directory
         run: |
@@ -72,8 +73,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
-          asset_name: libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
+          file: libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip
+          asset_name: libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip
           tag: ${{ github.ref }}
-        env:
-          GITHUB_REF: ${{ github.ref }}
