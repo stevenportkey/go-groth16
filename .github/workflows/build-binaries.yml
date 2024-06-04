@@ -49,9 +49,13 @@ jobs:
 
       - name: Prepare OS_NAME and VERSION
         run: |
-          OS_NAME=${{ matrix.os }}
-          OS_NAME=${OS_NAME%-latest}
-          echo "OS_NAME=$OS_NAME" >> $GITHUB_ENV
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            echo "OS_NAME=linux" >> $GITHUB_ENV
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            echo "OS_NAME=osx" >> $GITHUB_ENV
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            echo "OS_NAME=win" >> $GITHUB_ENV
+          fi
           echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
         env:
           GITHUB_REF: ${{ github.ref }}
@@ -63,11 +67,6 @@ jobs:
         run: |
           cd libgroth16/target/${{ matrix.rust_target }}/release
           zip -r libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip libgroth16.*
-
-      - name: List directory
-        run: |
-          echo libgroth16/target/${{ matrix.rust_target }}/release
-          ls -l libgroth16/target/${{ matrix.rust_target }}/release
 
       - name: Upload zips to release
         uses: svenstaro/upload-release-action@v2
