@@ -63,6 +63,11 @@ jobs:
         env:
           GITHUB_REF: ${{ github.ref }}
 
+      - name: List directory
+        run: |
+          echo libgroth16/target/${{ matrix.rust_target }}/release
+          ls -l libgroth16/target/${{ matrix.rust_target }}/release
+
       - name: Upload zips to release
         uses: svenstaro/upload-release-action@v2
         with:
