@@ -45,6 +45,9 @@ jobs:
           cd libgroth16
           cross build --release --target ${{ matrix.rust_target }}
 
+      - name: Create directories
+        run: mkdir -p libgroth16/target/${{ matrix.rust_target }}/release
+
       - name: Zip artifact
         run: |
           cd libgroth16/target/${{ matrix.rust_target }}/release
