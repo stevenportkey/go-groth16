@@ -38,10 +38,6 @@ jobs:
           override: true
           target: ${{ matrix.rust_target }}
 
-#      - name: Add aarch64-pc-windows-msvc target
-#        run: rustup target add aarch64-pc-windows-msvc
-#        if: matrix.rust_target == 'aarch64-pc-windows-gnu'
-
       - name: Install cross
         run: cargo install cross
 
