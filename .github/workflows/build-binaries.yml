@@ -61,7 +61,7 @@ jobs:
 
       - name: Prepare OS_NAME and VERSION fow windows
         run: |
-          echo "OS_NAME=win" >> $GITHUB_ENV
+          echo "OS_NAME=win" >> $env:GITHUB_ENV
           echo "VERSION=$($env:GITHUB_REF -replace '.*/', '')" >> $env:GITHUB_ENV
         env:
           GITHUB_REF: ${{ github.ref }}
