@@ -32,9 +32,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Change directory
-        run: cd libgroth16
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -47,9 +44,10 @@ jobs:
         with:
           command: build
           args: --release --target ${{ matrix.rust_target }}
+          working-directory: libgroth16
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}
-          path: target/${{ matrix.rust_target }}/release/libgroth16.*
+          path: libgroth16/target/${{ matrix.rust_target }}/release/libgroth16.*
