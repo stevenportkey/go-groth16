@@ -40,11 +40,9 @@ jobs:
           target: ${{ matrix.rust_target }}
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --target ${{ matrix.rust_target }}
-          working-directory: libgroth16
+        run: |
+          cd libgroth16
+          cargo build --release --target ${{ matrix.rust_target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
