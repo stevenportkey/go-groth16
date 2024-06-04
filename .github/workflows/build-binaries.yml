@@ -86,7 +86,7 @@ jobs:
       - name: Zip artifact on Windows
         run: |
           cd libgroth16/target/${{ matrix.rust_target }}/release
-          Compress-Archive -Path libgroth16.* -DestinationPath libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip
+          Compress-Archive -Path groth16.dll -DestinationPath libgroth16-${{ env.OS_NAME }}-${{ matrix.arch }}-${{ env.VERSION }}.zip
         if: matrix.os == 'windows-latest'
         shell: pwsh
 
