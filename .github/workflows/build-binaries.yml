@@ -61,6 +61,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${{ github.ref }}.zip
-          asset_name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${{ github.ref }}.zip
+          file: ./libgroth16/target/${{ matrix.rust_target }}/release/libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
+          asset_name: libgroth16-${{ matrix.os }}-${{ matrix.arch }}-${GITHUB_REF##*/}.zip
           tag: ${{ github.ref }}
