@@ -5,7 +5,7 @@ use ark_ec::{
 };
 use serde::{Deserialize, Serialize};
 use ark_ec::{AffineRepr, CurveGroup};
-use ark_ff::{BigInteger256, fields::{Field, PrimeField, Fp2}, QuadExtConfig};
+use ark_ff::{BigInteger256, fields::{Field, PrimeField}, QuadExtConfig};
 use ark_groth16::Proof;
 use std::marker::PhantomData;
 use num_bigint::BigUint;
@@ -14,77 +14,77 @@ use ark_ec::{
     bn::{Bn, BnConfig, TwistType},
 };
 
+use ark_bn254::Fq;
+use num_traits::Zero;
+
 use serde_json::{Value, json};
 
-
-// Assuming that `P::Fp` implements `ToString` and `std::str::FromStr`
 #[derive(Debug)]
-pub(crate) struct RapidSnarkProof<P: BnConfig> {
-    pub(crate) pi_a: Vec<P::Fp>,
-    pub(crate) pi_b: Vec<Vec<P::Fp>>,
-    pub(crate) pi_c: Vec<P::Fp>,
+pub(crate) struct RapidSnarkProof {
+    pub(crate) pi_a: Vec<Fq>,
+    pub(crate) pi_b: Vec<Vec<Fq>>,
+    pub(crate) pi_c: Vec<Fq>,
     pub(crate) protocol: String,
-    // #[serde(skip)]
-    // _phantom: PhantomData<P>,
 }
 
-//
-// impl<P: BnConfig> Serialize for RapidSnarkProof<P>
-//     where
-//         P::Fp: ToString,
-// {
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//         where
-//             S: serde::Serializer,
-//     {
-//         let pi_a: Vec<String> = self.pi_a.iter().map(|x| x.to_string()).collect();
-//         let pi_b: Vec<Vec<String>> = self.pi_b.iter().map(|inner| inner.iter().map(|x| x.to_string()).collect()).collect();
-//         let pi_c: Vec<String> = self.pi_c.iter().map(|x| x.to_string()).collect();
-//
-//         // Convert to JSON using serde_json::json!
-//         let json = json!({
-//             "pi_a": pi_a,
-//             "pi_b": pi_b,
-//             "pi_c": pi_c,
-//             "protocol": self.protocol
-//         });
-//
-//         serializer.serialize_newtype_struct("RapidSnarkProof", &json)
-//     }
-// }
-//
-impl<'de, P: BnConfig> Deserialize<'de> for RapidSnarkProof<P>
-    where
-        P::Fp: std::str::FromStr,
+
+impl Serialize for RapidSnarkProof
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+    {
+        let pi_a: Vec<String> = self.pi_a.iter().map(|x| x.to_string()).collect();
+        let pi_b: Vec<Vec<String>> = self.pi_b.iter().map(|inner| inner.iter().map(|x| {
+            match x.is_zero() {
+                true => "0".to_string(),
+                _ => x.to_string()
+            }
+        }).collect()).collect();
+        let pi_c: Vec<String> = self.pi_c.iter().map(|x| x.to_string()).collect();
+
+        // Convert to JSON using serde_json::json!
+        let json = json!({
+            "pi_a": pi_a,
+            "pi_b": pi_b,
+            "pi_c": pi_c,
+            "protocol": self.protocol
+        });
+
+        serializer.serialize_newtype_struct("RapidSnarkProof", &json)
+    }
+}
+
+impl<'de> Deserialize<'de> for RapidSnarkProof
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
             D: serde::Deserializer<'de>,
-    // <<P as BnConfig>::Fp as FromStr>::Err: std::fmt::Display
+    // <<P as BnConfig>::Fq as FromStr>::Err: std::fmt::Display
     {
         let json: Value = serde::Deserialize::deserialize(deserializer)?;
-        let pi_a: Vec<P::Fp> = json["pi_a"].as_array()
+        let pi_a: Vec<Fq> = json["pi_a"].as_array()
             .ok_or_else(|| serde::de::Error::custom("Expected pi_a to be an array"))?
             .iter()
             .map(|x| x.as_str().ok_or_else(|| serde::de::Error::custom("Expected string"))
-                .and_then(|str| str.parse::<P::Fp>().map_err(|_| serde::de::Error::custom("Not valid prime string"))))
+                .and_then(|str| str.parse::<Fq>().map_err(|_| serde::de::Error::custom("Not valid prime field element"))))
             .collect::<Result<_, _>>()?;
 
-        let pi_b: Vec<Vec<P::Fp>> = json["pi_b"].as_array()
+        let pi_b: Vec<Vec<Fq>> = json["pi_b"].as_array()
             .ok_or_else(|| serde::de::Error::custom("Expected pi_b to be an array of arrays"))?
             .iter()
             .map(|inner| inner.as_array().ok_or_else(|| serde::de::Error::custom("Expected inner array"))
                 .and_then(|inner_vec| inner_vec.iter()
                     .map(|x| x.as_str().ok_or_else(|| serde::de::Error::custom("Expected string"))
-                        .and_then(|str| str.parse::<P::Fp>().map_err(|_| serde::de::Error::custom("Not valid prime string"))))
+                        .and_then(|str| str.parse::<Fq>().map_err(|_| serde::de::Error::custom("Not valid prime field element"))))
                     .collect::<Result<_, _>>()))
             .collect::<Result<_, _>>()?;
 
-        let pi_c: Vec<P::Fp> = json["pi_c"].as_array()
+        let pi_c: Vec<Fq> = json["pi_c"].as_array()
             .ok_or_else(|| serde::de::Error::custom("Expected pi_c to be an array"))?
             .iter()
             .map(|x| x.as_str().ok_or_else(|| serde::de::Error::custom("Expected string"))
-                .and_then(|str| str.parse::<P::Fp>().map_err(|_| serde::de::Error::custom("Not valid prime string"))))
+                .and_then(|str| str.parse::<Fq>().map_err(|_| serde::de::Error::custom("Not valid prime field element"))))
             .collect::<Result<_, _>>()?;
 
         let protocol: String = json["protocol"].as_str()
@@ -96,7 +96,6 @@ impl<'de, P: BnConfig> Deserialize<'de> for RapidSnarkProof<P>
             pi_b,
             pi_c,
             protocol,
-            // _phantom: PhantomData
         })
     }
 }
