@@ -163,8 +163,10 @@ mod test {
     use ark_serialize::CanonicalDeserialize;
     use crate::proof::RapidSnarkProof;
     // use crate::proof::RapidSnarkProof1;
-    use ark_bn254::{Config};
+    use ark_bn254::{Config, G1Projective, G2Projective, Fq, Fq2};
     use ark_ec::bn::Bn;
+    use ark_ec::CurveGroup;
+
     //
     // #[test]
     // fn test_conversion_of_proof() {
@@ -220,7 +222,25 @@ mod test {
             }
         "#;
 
-        let deserialized: RapidSnarkProof<Config> = serde_json::from_str(json_str).expect("Failed to deserialize");
+        let proof: RapidSnarkProof<Config> = serde_json::from_str(json_str).expect("Failed to deserialize");
+
+        let proof = Proof::<Bn254> {
+            a: G1Projective {
+                x: proof.pi_a[0].clone(),
+                y: proof.pi_a[1].clone(),
+                z: proof.pi_a[2].clone(),
+            }.into_affine(),
+            b: G2Projective {
+                x: Fq2::new(proof.pi_b[0][0].clone(), proof.pi_b[0][1].clone()),
+                y: Fq2::new(proof.pi_b[1][0].clone(), proof.pi_b[1][1].clone()),
+                z: Fq2::new(proof.pi_b[2][0].clone(), proof.pi_b[2][1].clone()),
+            }.into_affine(),
+            c: G1Projective {
+                x: proof.pi_c[0].clone(),
+                y: proof.pi_c[1].clone(),
+                z: proof.pi_c[2].clone(),
+            }.into_affine(),
+        };
 
         // let parsed_json: RapidSnarkProof<Config> =
         //     serde_json::from_str(json_str).expect("Failed to parse JSON");
