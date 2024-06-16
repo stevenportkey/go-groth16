@@ -13,17 +13,15 @@ pub extern "C" fn groth16_verify_bn254(
     let vk = unsafe { CStr::from_ptr(vk).to_str() };
     let proving_output = unsafe { CStr::from_ptr(proving_output).to_str() };
     match (vk, proving_output) {
-        (Ok(vk), Ok(proving_output)) => {
-            match do_verify::<Bn254>(vk, proving_output) {
-                Ok(true) => 1,
-                Ok(false) => 0,
-                Err(err) => {
-                    println!("{}", err);
-                    -2
-                }
+        (Ok(vk), Ok(proving_output)) => match do_verify::<Bn254>(vk, proving_output) {
+            Ok(true) => 1,
+            Ok(false) => 0,
+            Err(err) => {
+                println!("{}", err);
+                -2
             }
-        }
-        _ => { -1 }
+        },
+        _ => -1,
     }
 }
 
@@ -45,9 +43,7 @@ pub extern "C" fn load_context_bn254(
 }
 
 #[no_mangle]
-pub extern "C" fn verifying_key_size_bn254(
-    ctx: Option<&mut ProvingContext<Bn254>>
-) -> cty::c_int {
+pub extern "C" fn verifying_key_size_bn254(ctx: Option<&mut ProvingContext<Bn254>>) -> cty::c_int {
     match ctx {
         Some(ctx) => {
             let vk = ctx.verifying_key_in_hex();
@@ -56,7 +52,6 @@ pub extern "C" fn verifying_key_size_bn254(
         _ => -1,
     }
 }
-
 
 #[no_mangle]
 pub extern "C" fn export_verifying_key_bn254(
@@ -84,9 +79,7 @@ pub extern "C" fn prove_bn254(
     match (ctx, input) {
         (Some(ctx), Ok(input)) => match do_prove(ctx, input) {
             Ok((pub_inputs, proof)) => match serialize(pub_inputs, proof) {
-                Ok(output) => {
-                    write_to_buffer(&output, buf, max_len)
-                }
+                Ok(output) => write_to_buffer(&output, buf, max_len),
                 Err(_) => -1,
             },
             Err(_) => -1,

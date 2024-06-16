@@ -7,16 +7,15 @@ use ark_groth16::{prepare_verifying_key, Groth16, Proof, ProvingKey, VerifyingKe
 use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystem};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_snark::SNARK;
+use ark_std::iterable::Iterable;
 use num_bigint::BigInt;
 use num_traits::Num;
 use rand::thread_rng;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::File;
-use ark_std::iterable::Iterable;
 // use eyre::ContextCompat;
 use ark_ff::PrimeField;
-
 
 pub struct ProvingContext<P: Pairing> {
     pub(crate) cfg: CircomConfig<P>,
@@ -26,7 +25,10 @@ pub struct ProvingContext<P: Pairing> {
 impl<P: Pairing> ProvingContext<P> {
     pub(crate) fn verifying_key_in_hex(&self) -> String {
         let mut vk = Vec::new();
-        self.pk.vk.serialize_compressed(&mut vk).expect("failed to serialize the verifying key");
+        self.pk
+            .vk
+            .serialize_compressed(&mut vk)
+            .expect("failed to serialize the verifying key");
         hex::encode(vk)
     }
 }
@@ -91,12 +93,10 @@ pub(crate) fn parse_input<P: Pairing>(
     Ok(inputs_vec)
 }
 
-pub(crate) fn do_verify<P: Pairing>(
-    vk: &str,
-    proving_output: &str,
-) -> anyhow::Result<bool> {
+pub(crate) fn do_verify<P: Pairing>(vk: &str, proving_output: &str) -> anyhow::Result<bool> {
     let vk = hex::decode(vk).context("failed to decode VerifyingKey")?;
-    let proving_output: ProvingOutput = serde_json::from_str(proving_output).context("failed to decode ProvingOutput")?;
+    let proving_output: ProvingOutput =
+        serde_json::from_str(proving_output).context("failed to decode ProvingOutput")?;
     let proof = hex::decode(proving_output.proof).context("failed to decode proof")?;
     let inputs = decode_public_input_array::<P>(proving_output.public_inputs)?;
     do_verify0::<P>(vk, proof, inputs)
@@ -115,15 +115,21 @@ pub(crate) fn do_verify0<P: Pairing>(
     Ok(res)
 }
 
-pub(crate) fn decode_public_input_array<P: Pairing>(public_inputs: Vec<String>) -> anyhow::Result<Vec<P::ScalarField>> {
-    let inputs: Vec<_> = public_inputs.iter().enumerate().map(|(i, s)| {
-        let value = BigInt::from_str_radix(s, 10).map_err(|_| ParseError {
-            message: format!("{}: {}", i, s)
-        })?;
-        let (_, bytes) = value.to_bytes_be();
-        let scalar = P::ScalarField::from_be_bytes_mod_order(bytes.as_slice());
-        Ok::<<P as Pairing>::ScalarField, ParseError>(scalar)
-    }).collect();
+pub(crate) fn decode_public_input_array<P: Pairing>(
+    public_inputs: Vec<String>,
+) -> anyhow::Result<Vec<P::ScalarField>> {
+    let inputs: Vec<_> = public_inputs
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            let value = BigInt::from_str_radix(s, 10).map_err(|_| ParseError {
+                message: format!("{}: {}", i, s),
+            })?;
+            let (_, bytes) = value.to_bytes_be();
+            let scalar = P::ScalarField::from_be_bytes_mod_order(bytes.as_slice());
+            Ok::<<P as Pairing>::ScalarField, ParseError>(scalar)
+        })
+        .collect();
     // let err = inputs.iter().find(|input| {
     //     if input.is_err() {
     //         println!("{:?}", input.as_ref().clone().err().unwrap());
@@ -134,11 +140,17 @@ pub(crate) fn decode_public_input_array<P: Pairing>(public_inputs: Vec<String>) 
     //     println!("{:?}", err.unwrap().as_ref().clone().err().unwrap());
     // }
     let _ = match inputs.iter().any(|value| value.is_err()) {
-        true => { Ok(0) }
-        false => { Err(ParseError { message: "parse error".to_string() }) }
-    }.context("failed to parse input");
+        true => Ok(0),
+        false => Err(ParseError {
+            message: "parse error".to_string(),
+        }),
+    }
+    .context("failed to parse input");
 
-    let inputs = inputs.iter().map(|value| value.as_ref().unwrap().clone()).collect();
+    let inputs = inputs
+        .iter()
+        .map(|value| value.as_ref().unwrap().clone())
+        .collect();
     Ok(inputs)
 }
 
@@ -156,8 +168,8 @@ pub(crate) fn load_context(
 }
 
 pub(crate) fn ret_or_err<T, E>(res: Result<T, E>) -> *mut T
-    where
-        E: Debug + Display,
+where
+    E: Debug + Display,
 {
     match res {
         Ok(res) => Box::into_raw(Box::new(res)),
@@ -256,8 +268,8 @@ pub(crate) fn serialize<P: Pairing>(
 
 #[cfg(test)]
 mod utils_test {
-    use ark_bn254::Bn254;
     use crate::utils::{do_prove, do_verify, load_context, parse_proving_input, serialize};
+    use ark_bn254::Bn254;
     use itertools::Itertools;
 
     #[test]

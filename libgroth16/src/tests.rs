@@ -6,10 +6,10 @@ mod test {
     use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystem};
     use ark_serialize::CanonicalSerialize;
     use ark_snark::SNARK;
-    
+
     use num_bigint::BigInt;
     use rand::thread_rng;
-    
+
     use std::fs::File;
 
     fn dec(hex_string: &str) -> BigInt {
