@@ -1,4 +1,5 @@
 use crate::dto::ProvingOutput;
+use crate::proof::RapidSnarkProof;
 use anyhow::Context;
 use ark_bn254::Bn254;
 use ark_circom::{read_zkey, CircomBuilder, CircomConfig, CircomReduction};
@@ -17,12 +18,12 @@ use std::fs::File;
 // use eyre::ContextCompat;
 use ark_ff::PrimeField;
 
-pub struct ProvingContext<P: Pairing> {
-    pub(crate) cfg: CircomConfig<P>,
-    pub(crate) pk: ProvingKey<P>,
+pub struct ProvingContext {
+    pub(crate) cfg: CircomConfig<Bn254>,
+    pub(crate) pk: ProvingKey<Bn254>,
 }
 
-impl<P: Pairing> ProvingContext<P> {
+impl ProvingContext {
     pub(crate) fn verifying_key_in_hex(&self) -> String {
         let mut vk = Vec::new();
         self.pk
@@ -79,45 +80,43 @@ pub(crate) fn to_vec(vk: *const cty::c_char, vk_len: cty::c_int) -> Vec<u8> {
     }
 }
 
-pub(crate) fn parse_input<P: Pairing>(
+pub(crate) fn parse_input(
     input: *const cty::c_char,
     input_len: cty::c_int,
-) -> anyhow::Result<Vec<P::ScalarField>> {
+) -> anyhow::Result<Vec<<Bn254 as Pairing>::ScalarField>> {
     let mut inputs_vec = Vec::new();
 
     for i in 0..((input_len / 32) as isize) {
         let scalar_vec = unsafe { to_vec(input.offset(i * 32), 32) };
-        let scalar = <P>::ScalarField::deserialize_compressed(&*scalar_vec)?;
+        let scalar = <Bn254 as Pairing>::ScalarField::deserialize_compressed(&*scalar_vec)?;
         inputs_vec.push(scalar);
     }
     Ok(inputs_vec)
 }
 
-pub(crate) fn do_verify<P: Pairing>(vk: &str, proving_output: &str) -> anyhow::Result<bool> {
+pub(crate) fn do_verify(vk: &str, proving_output: &str) -> anyhow::Result<bool> {
     let vk = hex::decode(vk).context("failed to decode VerifyingKey")?;
     let proving_output: ProvingOutput =
         serde_json::from_str(proving_output).context("failed to decode ProvingOutput")?;
-    let proof = hex::decode(proving_output.proof).context("failed to decode proof")?;
-    let inputs = decode_public_input_array::<P>(proving_output.public_inputs)?;
-    do_verify0::<P>(vk, proof, inputs)
+    let proof = proving_output.proof.into();
+    let inputs = decode_public_input_array(proving_output.public_inputs)?;
+    do_verify0(vk, proof, inputs)
 }
 
-pub(crate) fn do_verify0<P: Pairing>(
+pub(crate) fn do_verify0(
     vk: Vec<u8>,
-    proof: Vec<u8>,
-    inputs: Vec<P::ScalarField>,
+    proof: Proof<Bn254>,
+    inputs: Vec<<Bn254 as Pairing>::ScalarField>,
 ) -> anyhow::Result<bool> {
-    let vk = VerifyingKey::<P>::deserialize_compressed(&*vk)?;
+    let vk = VerifyingKey::<Bn254>::deserialize_compressed(&*vk)?;
     let pvk = prepare_verifying_key(&vk);
-
-    let proof = Proof::deserialize_compressed(&*proof)?;
-    let res = Groth16::<P>::verify_with_processed_vk(&pvk, inputs.as_slice(), &proof)?;
+    let res = Groth16::<Bn254>::verify_with_processed_vk(&pvk, inputs.as_slice(), &proof)?;
     Ok(res)
 }
 
-pub(crate) fn decode_public_input_array<P: Pairing>(
+pub(crate) fn decode_public_input_array(
     public_inputs: Vec<String>,
-) -> anyhow::Result<Vec<P::ScalarField>> {
+) -> anyhow::Result<Vec<<Bn254 as Pairing>::ScalarField>> {
     let inputs: Vec<_> = public_inputs
         .iter()
         .enumerate()
@@ -126,8 +125,8 @@ pub(crate) fn decode_public_input_array<P: Pairing>(
                 message: format!("{}: {}", i, s),
             })?;
             let (_, bytes) = value.to_bytes_be();
-            let scalar = P::ScalarField::from_be_bytes_mod_order(bytes.as_slice());
-            Ok::<<P as Pairing>::ScalarField, ParseError>(scalar)
+            let scalar = <Bn254 as Pairing>::ScalarField::from_be_bytes_mod_order(bytes.as_slice());
+            Ok::<<Bn254 as Pairing>::ScalarField, ParseError>(scalar)
         })
         .collect();
     // let err = inputs.iter().find(|input| {
@@ -145,7 +144,7 @@ pub(crate) fn decode_public_input_array<P: Pairing>(
             message: "parse error".to_string(),
         }),
     }
-    .context("failed to parse input");
+        .context("failed to parse input");
 
     let inputs = inputs
         .iter()
@@ -158,7 +157,7 @@ pub(crate) fn load_context(
     wasm_path: &str,
     r1cs_path: &str,
     zkey_path: &str,
-) -> anyhow::Result<ProvingContext<Bn254>> {
+) -> anyhow::Result<ProvingContext> {
     let cfg = CircomConfig::new(wasm_path, r1cs_path)
         .map_err(|_| InvalidPathError)
         .context("invalid wasm or r1cs file path")?;
@@ -168,8 +167,8 @@ pub(crate) fn load_context(
 }
 
 pub(crate) fn ret_or_err<T, E>(res: Result<T, E>) -> *mut T
-where
-    E: Debug + Display,
+    where
+        E: Debug + Display,
 {
     match res {
         Ok(res) => Box::into_raw(Box::new(res)),
@@ -195,10 +194,10 @@ fn parse_proving_input(input: &str) -> anyhow::Result<HashMap<String, Vec<BigInt
     Ok(parsed_input)
 }
 
-pub(crate) fn do_prove<P: Pairing>(
-    ctx: &ProvingContext<P>,
+pub(crate) fn do_prove(
+    ctx: &ProvingContext,
     input: &str,
-) -> anyhow::Result<(Vec<P::ScalarField>, Proof<P>)> {
+) -> anyhow::Result<(Vec<<Bn254 as Pairing>::ScalarField>, Proof<Bn254>)> {
     let input = parse_proving_input(input).context("failed to parse input")?;
     let mut builder = CircomBuilder::new(ctx.cfg.clone());
     for (key, value) in input.iter() {
@@ -218,12 +217,12 @@ pub(crate) fn do_prove<P: Pairing>(
 
     let mut rng = thread_rng();
 
-    let cs = ConstraintSystem::<P::ScalarField>::new_ref();
+    let cs = ConstraintSystem::<<Bn254 as Pairing>::ScalarField>::new_ref();
     circom.clone().generate_constraints(cs.clone()).unwrap();
     let is_satisfied = cs.is_satisfied().unwrap();
     assert!(is_satisfied);
 
-    let proof = Groth16::<P, CircomReduction>::prove(&ctx.pk, circom, &mut rng)
+    let proof = Groth16::<Bn254, CircomReduction>::prove(&ctx.pk, circom, &mut rng)
         .context("failed to produce proof")?;
 
     Ok((pub_inputs, proof))
@@ -249,18 +248,13 @@ pub(crate) fn write_to_buffer(
     }
 }
 
-pub(crate) fn serialize<P: Pairing>(
-    public_inputs: Vec<P::ScalarField>,
-    proof: Proof<P>,
+pub(crate) fn serialize(
+    public_inputs: Vec<<Bn254 as Pairing>::ScalarField>,
+    proof: Proof<Bn254>,
 ) -> anyhow::Result<String> {
-    let mut proof_vec = Vec::new();
-    proof
-        .serialize_compressed(&mut proof_vec)
-        .expect("failed to serialize proof");
-
     let output = ProvingOutput {
         public_inputs: public_inputs.iter().map(|v| v.to_string()).collect(),
-        proof: hex::encode(&proof_vec),
+        proof: proof.into(),
     };
     let output = serde_json::to_string(&output).expect("failed to serialize to output");
     Ok(output)
