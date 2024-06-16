@@ -1,5 +1,4 @@
 use crate::dto::ProvingOutput;
-use crate::proof::RapidSnarkProof;
 use anyhow::Context;
 use ark_bn254::Bn254;
 use ark_circom::{read_zkey, CircomBuilder, CircomConfig, CircomReduction};
@@ -8,7 +7,6 @@ use ark_groth16::{prepare_verifying_key, Groth16, Proof, ProvingKey, VerifyingKe
 use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystem};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_snark::SNARK;
-use ark_std::iterable::Iterable;
 use num_bigint::BigInt;
 use num_traits::Num;
 use rand::thread_rng;
@@ -148,7 +146,7 @@ pub(crate) fn decode_public_input_array(
 
     let inputs = inputs
         .iter()
-        .map(|value| value.as_ref().unwrap().clone())
+        .map(|value| *value.as_ref().unwrap())
         .collect();
     Ok(inputs)
 }
@@ -239,7 +237,7 @@ pub(crate) fn write_to_buffer(
     if len_c_int <= max_len - 1 {
         unsafe {
             std::ptr::copy(src, buf as *mut u8, len);
-            (*buf.offset(len as isize)) = 0;
+            (*buf.add(len)) = 0;
         }
         len_c_int
     } else {

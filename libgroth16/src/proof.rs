@@ -141,25 +141,25 @@ impl From<Proof<Bn254>> for RapidSnarkProof {
     }
 }
 
-impl Into<Proof<Bn254>> for RapidSnarkProof {
-    fn into(self) -> Proof<Bn254> {
+impl From<RapidSnarkProof> for Proof<Bn254> {
+    fn from(val: RapidSnarkProof) -> Self {
         Proof::<Bn254> {
             a: G1Projective {
-                x: self.pi_a[0].clone(),
-                y: self.pi_a[1].clone(),
-                z: self.pi_a[2].clone(),
+                x: val.pi_a[0],
+                y: val.pi_a[1],
+                z: val.pi_a[2],
             }
             .into_affine(),
             b: G2Projective {
-                x: Fq2::new(self.pi_b[0][0].clone(), self.pi_b[0][1].clone()),
-                y: Fq2::new(self.pi_b[1][0].clone(), self.pi_b[1][1].clone()),
-                z: Fq2::new(self.pi_b[2][0].clone(), self.pi_b[2][1].clone()),
+                x: Fq2::new(val.pi_b[0][0], val.pi_b[0][1]),
+                y: Fq2::new(val.pi_b[1][0], val.pi_b[1][1]),
+                z: Fq2::new(val.pi_b[2][0], val.pi_b[2][1]),
             }
             .into_affine(),
             c: G1Projective {
-                x: self.pi_c[0].clone(),
-                y: self.pi_c[1].clone(),
-                z: self.pi_c[2].clone(),
+                x: val.pi_c[0],
+                y: val.pi_c[1],
+                z: val.pi_c[2],
             }
             .into_affine(),
         }

@@ -1,12 +1,10 @@
 use crate::utils::{
     do_prove, do_verify, load_context, ret_or_err, serialize, write_to_buffer, ProvingContext,
 };
-use ark_bn254::Bn254;
-
 use std::ffi::CStr;
 
 #[no_mangle]
-pub extern "C" fn groth16_verify_bn254(
+pub unsafe extern "C" fn groth16_verify_bn254(
     vk: *const cty::c_char,
     proving_output: *const cty::c_char,
 ) -> cty::c_int {
@@ -26,7 +24,7 @@ pub extern "C" fn groth16_verify_bn254(
 }
 
 #[no_mangle]
-pub extern "C" fn load_context_bn254(
+pub unsafe extern "C" fn load_context_bn254(
     wasm_path: *const cty::c_char,
     r1cs_path: *const cty::c_char,
     zkey_path: *const cty::c_char,
@@ -69,7 +67,7 @@ pub extern "C" fn export_verifying_key_bn254(
 }
 
 #[no_mangle]
-pub extern "C" fn prove_bn254(
+pub unsafe extern "C" fn prove_bn254(
     ctx: Option<&mut ProvingContext>,
     input: *const cty::c_char,
     buf: *mut cty::c_char,
