@@ -3,6 +3,7 @@ use ark_ec::{
     models::CurveConfig,
     pairing::Pairing,
 };
+use ark_serialize::CanonicalSerialize;
 use serde::{Deserialize, Serialize};
 use ark_ec::{AffineRepr, CurveGroup};
 use ark_ff::{BigInteger256, fields::{Field, PrimeField}, QuadExtConfig};
@@ -14,7 +15,7 @@ use ark_ec::{
     bn::{Bn, BnConfig, TwistType},
 };
 
-use ark_bn254::Fq;
+use ark_bn254::{Bn254, G1Projective, G2Projective, Fq, Fq2};
 use num_traits::Zero;
 
 use serde_json::{Value, json};
@@ -101,70 +102,61 @@ impl<'de> Deserialize<'de> for RapidSnarkProof
 }
 
 
-// impl<P: BnConfig> From<Proof<Bn<P>>> for RapidSnarkProof<P> {
-//     // type G2Field = Fp2<P::Fp2Config>;
-//     fn from(proof: Proof<Bn<P>>) -> Self {
-//         let xx: Vec<_> = proof.a.x().unwrap().to_base_prime_field_elements().collect();
-//         let pi_a = vec![
-//             proof.a.x().unwrap().to_base_prime_field_elements().next().expect("must have").to_string(),
-//             proof.a.y().unwrap().to_base_prime_field_elements().next().expect("must have").to_string(),
-//             "1".to_string(),
-//         ];
-//         let pi_b_x = proof.b.x().unwrap().to_base_prime_field_elements().map(|v| v.to_string()).collect();
-//         let pi_b_y = proof.b.y().unwrap().to_base_prime_field_elements().map(|v| v.to_string()).collect();
-//         let pi_b = vec![
-//             pi_b_x,
-//             pi_b_y,
-//             vec!["1".to_string(), "0".to_string()],
-//         ];
-//         let pi_c = vec![
-//             proof.c.x().unwrap().to_base_prime_field_elements().next().expect("must have").to_string(),
-//             proof.c.y().unwrap().to_base_prime_field_elements().next().expect("must have").to_string(),
-//             "1".to_string(),
-//         ];
-//         Self {
-//             pi_a,
-//             pi_b,
-//             pi_c,
-//             protocol: "groth16".to_string(),
-//             // _phantom: PhantomData,
-//         }
-//     }
-// }
-//
-// impl<P: BnConfig> Into<Proof<Bn<P>>> for RapidSnarkProof<P> {
-//     fn into(&self) -> Proof<Bn<P>> {
-//         let x_coord = |v: &str| {
-//             let v = BigUint::from_str_radix(v, 10).unwrap();
-//             ark_ff::BigInteger256::from(v)
-//         };
-//         let a = bn::G1Projective::<P>::new(self.pi_a[0].parse::<ark_ff::BigInteger256>().unwrap(), self.pi_a[1].parse::<ark_ff::BigInteger256>().unwrap(), ark_ff::BigInteger256::from(1)).into_affine();
-//         let b = bn::G2Projective::<P>::new().into_affine();
-//
-//
-//         P::Fp2Config::Fp::zero();
-//         // <P::G2Config as CurveConfig>::BaseField::new();
-//         // ;
-//         // Fp2<<P as BnConfig>::Fp2Config>>::BaseField::new();
-//         // Bn<P>::G2Projective::new().into_affine();
-//
-//
-//         let c = bn::G1Projective::<P>::new(self.pi_c[0].parse::<ark_ff::BigInteger256>().unwrap(), self.pi_c[1].parse::<ark_ff::BigInteger256>().unwrap(), ark_ff::BigInteger256::from(1)).into_affine();
-//         Proof { a, b, c }
-//     }
-// }
+impl From<Proof<Bn254>> for RapidSnarkProof {
+    fn from(proof: Proof<Bn254>) -> Self {
+        let a = G1Projective::from(proof.a);
+        let b = G2Projective::from(proof.b);
+        let c = G1Projective::from(proof.c);
+        let pi_a = vec![a.x, a.y, a.z];
+        let pi_b = vec![vec![b.x.c0, b.x.c1], vec![b.y.c0, b.y.c1], vec![b.z.c0, b.z.c1]];
+        let pi_c = vec![c.x, c.y, c.z];
+        Self {
+            pi_a,
+            pi_b,
+            pi_c,
+            protocol: "groth16".to_string(),
+        }
+    }
+}
+
+impl Into<Proof<Bn254>> for RapidSnarkProof {
+    fn into(self) -> Proof<Bn254> {
+        Proof::<Bn254> {
+            a: G1Projective {
+                x: self.pi_a[0].clone(),
+                y: self.pi_a[1].clone(),
+                z: self.pi_a[2].clone(),
+            }.into_affine(),
+            b: G2Projective {
+                x: Fq2::new(self.pi_b[0][0].clone(), self.pi_b[0][1].clone()),
+                y: Fq2::new(self.pi_b[1][0].clone(), self.pi_b[1][1].clone()),
+                z: Fq2::new(self.pi_b[2][0].clone(), self.pi_b[2][1].clone()),
+            }.into_affine(),
+            c: G1Projective {
+                x: self.pi_c[0].clone(),
+                y: self.pi_c[1].clone(),
+                z: self.pi_c[2].clone(),
+            }.into_affine(),
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {
+    use std::fs::File;
     use crate::proof::BnConfig;
     use ark_bn254::Bn254;
-    use ark_groth16::Proof;
+    use ark_groth16::{Groth16, Proof};
     use ark_serialize::CanonicalDeserialize;
     use crate::proof::RapidSnarkProof;
     // use crate::proof::RapidSnarkProof1;
-    use ark_bn254::{Config, G1Projective, G2Projective, Fq, Fq2};
+    use ark_bn254::{Config, G1Projective, G2Projective, Fr, Fq, Fq2};
+    use ark_circom::read_zkey;
     use ark_ec::bn::Bn;
     use ark_ec::CurveGroup;
+    use rand::thread_rng;
+    use ark_snark::SNARK;
+    use ark_serialize::CanonicalSerialize;
 
     //
     // #[test]
